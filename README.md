@@ -1,7 +1,7 @@
 # ocds-tabulate
 Transform OCDS data into a database.
 
-This is a very preliminary version. The following document proposes what we are our plans with this project:
+This is a very preliminary version. The following document proposes what we are our future plans are:
 
 https://docs.google.com/document/d/1ZK9crNn-9oB0ocdd5WkDLGw_qqGo3x5vZMoen8cLlyA/edit?usp=sharing
 
@@ -57,7 +57,7 @@ optional arguments:
 For what to use as a database_url use the [sqlalchemy documentation](https://docs.sqlalchemy.org/en/rel_1_1/core/engines.html#database-urls). For example to use a sqlite file named ocds_data.db in the current directory use  
 
 ```
-sqlite:///ocds_data.db'
+sqlite:///ocds_data.db
 ```
 
 For the schema_url you need to point to the release_schema.json in the standard i.e:
@@ -73,6 +73,8 @@ The argument 'drop' will remove all the tables before the load. If this is not s
 
 ## Example
 
+```
 python tabulate_ocds.py sqlite:///ocds_data.db my_ocds_package.json
 
+```
 
