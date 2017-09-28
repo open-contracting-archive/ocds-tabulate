@@ -20,7 +20,7 @@ def process_schema_object(path, current_name, flattened, obj):
         prop_type = property['type']
         if prop_type == 'object':
             flattened = process_schema_object(path, current_name + name + '_', flattened, property)
-            #flattened = process_schema_object(path + (name,), '', flattened, property)
+            # flattened = process_schema_object(path + (name,), '', flattened, property)
         elif prop_type == 'array':
             if 'object' not in property['items']['type']:
                 current_object[current_name + name] = property['items']['type'] + '[]'
@@ -45,7 +45,6 @@ def create_db(sqlalchemy_url, deref_schema, drop=False):
     flattened = {}
     flat = process_schema_object((), '', flattened, deref_schema)
 
-    all = set()
     for table, fields in flat.items():
         table_name = "_".join(table)
         if not table_name:
@@ -53,7 +52,7 @@ def create_db(sqlalchemy_url, deref_schema, drop=False):
         columns = [sa.Column('ocid', sa.Text)]
         for parent_table in ('releases',) + table:
             columns.append(sa.Column(parent_table[:-1] + '_id', sa.Text))
-            #columns.append(sa.Column(parent_table + '_id', sa.Text))
+            # columns.append(sa.Column(parent_table + '_id', sa.Text))
 
         for field in sorted(fields.keys()):
             types = fields[field]
@@ -86,7 +85,7 @@ def process_object(path, current_name, current_keys, flattened, obj, flat_obj):
             flat_list = []
             flattened[path] = flat_list
         new_id = obj.pop('id', None)
-        #new_id = obj.get('id', None)
+        # new_id = obj.get('id', None)
         if not new_id:
             new_id = str(len(flat_list) + 1)
         if not current_keys:
@@ -95,20 +94,20 @@ def process_object(path, current_name, current_keys, flattened, obj, flat_obj):
         flat_obj = {'ocid': current_keys[0]}
         for num, table in enumerate(('releases',) + path):
             flat_obj[table[:-1] + '_id'] = current_keys[num + 1]
-            #flat_obj[table + '_id'] = current_keys[num + 1]
+            # flat_obj[table + '_id'] = current_keys[num + 1]
         flat_list.append(flat_obj)
 
     for key, value in obj.items():
         if isinstance(value, dict):
             process_object(path, current_name + key + '_', current_keys, flattened, value, flat_obj)
-            #process_object(path + (key,), '', current_keys, flattened, value, None)
+            # process_object(path + (key,), '', current_keys, flattened, value, None)
         elif isinstance(value, list):
             if not value:
                 continue
             if isinstance(value[0], dict):
                 for item in value:
                     process_object(path + (current_name + key,), '', current_keys, flattened, item, None)
-                    #process_object(path + (key,), '', current_keys, flattened, item, None)
+                    # process_object(path + (key,), '', current_keys, flattened, item, None)
             else:
                 flat_obj[current_name + key] = json.dumps(value)
         else:
