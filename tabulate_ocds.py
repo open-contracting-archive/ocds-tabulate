@@ -1,4 +1,4 @@
-import json 
+import json
 import argparse
 import sqlalchemy as sa
 import jsonref
@@ -30,7 +30,6 @@ def process_schema_object(path, current_name, flattened, obj):
             current_object[current_name + name] = prop_type
 
     return flattened
-
 
 
 def create_db(sqlalchemy_url, deref_schema, drop=False):
@@ -77,7 +76,7 @@ def create_db(sqlalchemy_url, deref_schema, drop=False):
 
     metadata.create_all(engine)
     return metadata, engine
-        
+
 
 def process_object(path, current_name, current_keys, flattened, obj, flat_obj):
 
@@ -143,7 +142,6 @@ def upload_files(metadata, engine, deref_schema, files, merge=False):
                     for record in json_document['records']:
                         releases.append(record['compiledRelease'])
 
-
             upload_file(metadata, engine, deref_schema, releases)
 
 
@@ -154,7 +152,6 @@ def upload_file(metadata, engine, deref_schema, releases):
     tabulated = {}
     for release in releases:
         tabulated = process_object(tuple(), '', tuple(), tabulated, release, None)
-
 
     for table, rows in tabulated.items():
         if not table:
@@ -180,19 +177,19 @@ def upload_file(metadata, engine, deref_schema, releases):
             else:
                 row['extras'] = json.dumps(extras)
         conn.execute(table.insert(), rows)
-    
 
 
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Get some ocds data tabularized')
-    
+
     parser.add_argument('database_url',
-                       help='sqlalchemy database url')
+                        help='sqlalchemy database url')
     parser.add_argument('files', help='json files to upload to db', nargs='+')
     parser.add_argument('--merge', help='say if you want to ocds merge the files', action='store_true')
     parser.add_argument('--drop', help='drop all current tables', action='store_true')
-    parser.add_argument('--schema_url', help='release-schema.json file used, defaults to 1.', default='http://ocds.open-contracting.org/standard/r/1__0__2/release-schema.json')
+    parser.add_argument('--schema_url', help='release-schema.json file used, defaults to 1.',
+                        default='http://ocds.open-contracting.org/standard/r/1__0__2/release-schema.json')
 
     args = parser.parse_args()
 
