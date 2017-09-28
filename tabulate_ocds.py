@@ -1,4 +1,4 @@
-import json 
+import json
 import argparse
 import sqlalchemy as sa
 import jsonref
@@ -20,7 +20,7 @@ def process_schema_object(path, current_name, flattened, obj):
         prop_type = property['type']
         if prop_type == 'object':
             flattened = process_schema_object(path, current_name + name + '_', flattened, property)
-            #flattened = process_schema_object(path + (name,), '', flattened, property)
+            # flattened = process_schema_object(path + (name,), '', flattened, property)
         elif prop_type == 'array':
             if 'object' not in property['items']['type']:
                 current_object[current_name + name] = property['items']['type'] + '[]'
@@ -30,7 +30,6 @@ def process_schema_object(path, current_name, flattened, obj):
             current_object[current_name + name] = prop_type
 
     return flattened
-
 
 
 def create_db(sqlalchemy_url, deref_schema, drop=False):
@@ -46,7 +45,6 @@ def create_db(sqlalchemy_url, deref_schema, drop=False):
     flattened = {}
     flat = process_schema_object((), '', flattened, deref_schema)
 
-    all = set()
     for table, fields in flat.items():
         table_name = "_".join(table)
         if not table_name:
@@ -54,7 +52,7 @@ def create_db(sqlalchemy_url, deref_schema, drop=False):
         columns = [sa.Column('ocid', sa.Text)]
         for parent_table in ('releases',) + table:
             columns.append(sa.Column(parent_table[:-1] + '_id', sa.Text))
-            #columns.append(sa.Column(parent_table + '_id', sa.Text))
+            # columns.append(sa.Column(parent_table + '_id', sa.Text))
 
         for field in sorted(fields.keys()):
             types = fields[field]
@@ -77,7 +75,7 @@ def create_db(sqlalchemy_url, deref_schema, drop=False):
 
     metadata.create_all(engine)
     return metadata, engine
-        
+
 
 def process_object(path, current_name, current_keys, flattened, obj, flat_obj):
 
@@ -87,7 +85,7 @@ def process_object(path, current_name, current_keys, flattened, obj, flat_obj):
             flat_list = []
             flattened[path] = flat_list
         new_id = obj.pop('id', None)
-        #new_id = obj.get('id', None)
+        # new_id = obj.get('id', None)
         if not new_id:
             new_id = str(len(flat_list) + 1)
         if not current_keys:
@@ -96,20 +94,20 @@ def process_object(path, current_name, current_keys, flattened, obj, flat_obj):
         flat_obj = {'ocid': current_keys[0]}
         for num, table in enumerate(('releases',) + path):
             flat_obj[table[:-1] + '_id'] = current_keys[num + 1]
-            #flat_obj[table + '_id'] = current_keys[num + 1]
+            # flat_obj[table + '_id'] = current_keys[num + 1]
         flat_list.append(flat_obj)
 
     for key, value in obj.items():
         if isinstance(value, dict):
             process_object(path, current_name + key + '_', current_keys, flattened, value, flat_obj)
-            #process_object(path + (key,), '', current_keys, flattened, value, None)
+            # process_object(path + (key,), '', current_keys, flattened, value, None)
         elif isinstance(value, list):
             if not value:
                 continue
             if isinstance(value[0], dict):
                 for item in value:
                     process_object(path + (current_name + key,), '', current_keys, flattened, item, None)
-                    #process_object(path + (key,), '', current_keys, flattened, item, None)
+                    # process_object(path + (key,), '', current_keys, flattened, item, None)
             else:
                 flat_obj[current_name + key] = json.dumps(value)
         else:
@@ -143,7 +141,6 @@ def upload_files(metadata, engine, deref_schema, files, merge=False):
                     for record in json_document['records']:
                         releases.append(record['compiledRelease'])
 
-
             upload_file(metadata, engine, deref_schema, releases)
 
 
@@ -154,7 +151,6 @@ def upload_file(metadata, engine, deref_schema, releases):
     tabulated = {}
     for release in releases:
         tabulated = process_object(tuple(), '', tuple(), tabulated, release, None)
-
 
     for table, rows in tabulated.items():
         if not table:
@@ -180,19 +176,19 @@ def upload_file(metadata, engine, deref_schema, releases):
             else:
                 row['extras'] = json.dumps(extras)
         conn.execute(table.insert(), rows)
-    
 
 
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Get some ocds data tabularized')
-    
+
     parser.add_argument('database_url',
-                       help='sqlalchemy database url')
+                        help='sqlalchemy database url')
     parser.add_argument('files', help='json files to upload to db', nargs='+')
     parser.add_argument('--merge', help='say if you want to ocds merge the files', action='store_true')
     parser.add_argument('--drop', help='drop all current tables', action='store_true')
-    parser.add_argument('--schema_url', help='release-schema.json file used, defaults to 1.', default='http://ocds.open-contracting.org/standard/r/1__0__2/release-schema.json')
+    parser.add_argument('--schema_url', help='release-schema.json file used, defaults to 1.',
+                        default='http://ocds.open-contracting.org/standard/r/1__0__2/release-schema.json')
 
     args = parser.parse_args()
 
