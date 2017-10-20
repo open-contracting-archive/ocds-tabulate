@@ -21,16 +21,16 @@ def process_schema_object(path, current_name, flattened, obj):
         current_object = {}
         flattened[path] = current_object
 
-    for name, property in list(properties.items()):
-        prop_type = property['type']
+    for name, prop in list(properties.items()):
+        prop_type = prop['type']
         if prop_type == 'object':
-            flattened = process_schema_object(path, current_name + name + '_', flattened, property)
-            # flattened = process_schema_object(path + (name,), '', flattened, property)
+            flattened = process_schema_object(path, current_name + name + '_', flattened, prop)
+            # flattened = process_schema_object(path + (name,), '', flattened, prop)
         elif prop_type == 'array':
-            if 'object' not in property['items']['type']:
-                current_object[current_name + name] = property['items']['type'] + '[]'
+            if 'object' not in prop['items']['type']:
+                current_object[current_name + name] = prop['items']['type'] + '[]'
             else:
-                flattened = process_schema_object(path + (current_name + name,), '', flattened, property['items'])
+                flattened = process_schema_object(path + (current_name + name,), '', flattened, prop['items'])
         else:
             current_object[current_name + name] = prop_type
 
