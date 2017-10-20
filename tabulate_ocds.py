@@ -9,9 +9,14 @@ from sqlalchemy.dialects.postgresql import JSONB
 
 
 def process_schema_object(path, current_name, flattened, obj):
+    '''Return a dictionary with a flattened representation of the schema
 
-    properties = obj['properties']
+    NB: patterProperties are skipped as we don't want them as field names
+    (a regex string) in the database.
+    '''
+    properties = obj.get('properties', {})  # An object may have patternProperties only
     current_object = flattened.get(path)
+
     if current_object is None:
         current_object = {}
         flattened[path] = current_object
