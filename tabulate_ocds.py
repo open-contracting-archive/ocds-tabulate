@@ -9,23 +9,28 @@ from sqlalchemy.dialects.postgresql import JSONB
 
 
 def process_schema_object(path, current_name, flattened, obj):
+    '''Return a dictionary with a flattened representation of the schema
 
-    properties = obj['properties']
+    NB: patterProperties are skipped as we don't want them as field names
+    (a regex string) in the database.
+    '''
+    properties = obj.get('properties', {})  # An object may have patternProperties only
     current_object = flattened.get(path)
+
     if current_object is None:
         current_object = {}
         flattened[path] = current_object
 
-    for name, property in list(properties.items()):
-        prop_type = property['type']
+    for name, prop in list(properties.items()):
+        prop_type = prop['type']
         if prop_type == 'object':
-            flattened = process_schema_object(path, current_name + name + '_', flattened, property)
-            # flattened = process_schema_object(path + (name,), '', flattened, property)
+            flattened = process_schema_object(path, current_name + name + '_', flattened, prop)
+            # flattened = process_schema_object(path + (name,), '', flattened, prop)
         elif prop_type == 'array':
-            if 'object' not in property['items']['type']:
-                current_object[current_name + name] = property['items']['type'] + '[]'
+            if 'object' not in prop['items']['type']:
+                current_object[current_name + name] = prop['items']['type'] + '[]'
             else:
-                flattened = process_schema_object(path + (current_name + name,), '', flattened, property['items'])
+                flattened = process_schema_object(path + (current_name + name,), '', flattened, prop['items'])
         else:
             current_object[current_name + name] = prop_type
 
